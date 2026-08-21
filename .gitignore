@@ -53,3 +53,9 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Code
+.vscode
+
+# My executables
+ft_strace
