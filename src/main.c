@@ -23,7 +23,7 @@ int	main(int argc, char **argv, char **envp)
 
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = sigint_handler;
-	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);// Signal Interrupt
 
 	if (pipe(sync_pipe) == -1)
 	{

@@ -4,17 +4,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include <signal.h>
 #include <stdbool.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/ptrace.h>
 #include <sys/user.h>
 #include <sys/uio.h>
-#include <linux/ptrace.h>
 #include <elf.h>
 
 typedef enum s_arch
