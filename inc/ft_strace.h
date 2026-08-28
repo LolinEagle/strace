@@ -49,12 +49,12 @@ typedef struct s_user_regs_struct32
 
 typedef struct s_tracer
 {
-	pid_t						child_pid;
-	bool						in_syscall;
-	t_arch						arch;
-	struct user_regs_struct		regs64;
-	t_user_regs_struct32		regs32;
-	long						orig_syscall;
+	pid_t					child_pid;
+	bool					in_syscall;
+	t_arch					arch;
+	struct user_regs_struct	regs64;
+	t_user_regs_struct32	regs32;
+	long					orig_syscall;
 }	t_tracer;
 
 // System call tables

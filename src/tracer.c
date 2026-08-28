@@ -58,7 +58,8 @@ int	run_tracer(pid_t child_pid)
 	{
 		if (waitpid(child_pid, &status, 0) == -1)
 		{
-			if (errno == EINTR)// Interrupted system call
+			// Interrupted system call
+			if (errno == EINTR)
 				continue ;
 			break ;
 		}
