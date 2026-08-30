@@ -119,15 +119,26 @@ void	print_syscall_exit(t_tracer *t)
 		ret = (long)t->regs64.rax;
 	else
 		ret = (long)(int32_t)t->regs32.eax;
+
+	// Handle standard negative errno convention (-4095 to -1)
 	if (ret < 0 && ret >= -4095)
 		fprintf(stderr, " = -1 (errno %ld)\n", -ret);
 	else if (ret == 0)
 		fprintf(stderr, " = 0\n");
-	else if (ret > 0 && ret <= 4096)
-		fprintf(stderr, " = %ld\n", ret);
+	else if (t->arch == ARCH_32)
+	{
+		if ((uint32_t)ret > 10000)
+			fprintf(stderr, " = 0x%x\n", (uint32_t)ret);
+		else
+			fprintf(stderr, " = %u\n", (uint32_t)ret);
+	}
 	else
-		fprintf(stderr, " = 0x%lx\n", ret);
-	fflush(stderr);
+	{
+		if ((unsigned long)ret > 10000)
+			fprintf(stderr, " = 0x%lx\n", (unsigned long)ret);
+		else
+			fprintf(stderr, " = %ld\n", ret);
+	}
 }
 
 void	print_signal(siginfo_t *si)

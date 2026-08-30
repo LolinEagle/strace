@@ -29,6 +29,9 @@ re:fclean
 norm:
 	@norminette | grep -v $(IGNORE) || true
 
+test:re
+	@clear && bash run_tests.sh
+
 $(OBJ_PATH)%.o:$(SRC_PATH)%.c | $(OBJ_DIRS)
 	$(CC) $(FLAGS) $(INC) -c $< -o $@
 
@@ -38,4 +41,4 @@ $(OBJ_DIRS):
 $(NAME):$(OBJ)
 	$(CC) $(FLAGS) $(INC) $(OBJ) -o $(NAME)
 
-.PHONY:all clean fclean re norm
+.PHONY:all clean fclean re norm test
