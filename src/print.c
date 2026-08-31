@@ -95,16 +95,16 @@ void	print_syscall_entry(t_tracer *t)
 	}
 
 	if (name)
-		fprintf(stderr, "%s(", name);
+		fprintf(stderr, YELLOW "%s" RESET "(", name);
 	else
-		fprintf(stderr, "sys_%ld(", t->orig_syscall);
+		fprintf(stderr, YELLOW "sys_%ld" RESET "(", t->orig_syscall);
 	i = 0;
 	while (i < nargs)
 	{
 		if (args[i] == 0)
-			fprintf(stderr, "%s0", format(i));
+			fprintf(stderr, "%s" MAGENTA "0" RESET, format(i));
 		else
-			fprintf(stderr, "%s0x%lx", format(i), args[i]);
+			fprintf(stderr, "%s" MAGENTA "0x%lx" RESET, format(i), args[i]);
 		i++;
 	}
 	fprintf(stderr, ")");
@@ -122,22 +122,22 @@ void	print_syscall_exit(t_tracer *t)
 
 	// Handle standard negative errno convention (-4095 to -1)
 	if (ret < 0 && ret >= -4095)
-		fprintf(stderr, " = -1 (errno %ld)\n", -ret);
+		fprintf(stderr, " = " GREEN "-1 " RED "(errno %ld)\n" RESET, -ret);
 	else if (ret == 0)
-		fprintf(stderr, " = 0\n");
+		fprintf(stderr, " = " GREEN "0\n" RESET);
 	else if (t->arch == ARCH_32)
 	{
 		if ((uint32_t)ret > 10000)
-			fprintf(stderr, " = 0x%x\n", (uint32_t)ret);
+			fprintf(stderr, " = " GREEN "0x%x\n" RESET, (uint32_t)ret);
 		else
-			fprintf(stderr, " = %u\n", (uint32_t)ret);
+			fprintf(stderr, " = " GREEN "%u\n" RESET, (uint32_t)ret);
 	}
 	else
 	{
 		if ((unsigned long)ret > 10000)
-			fprintf(stderr, " = 0x%lx\n", (unsigned long)ret);
+			fprintf(stderr, " = " GREEN "0x%lx\n" RESET, (unsigned long)ret);
 		else
-			fprintf(stderr, " = %ld\n", ret);
+			fprintf(stderr, " = " GREEN "%ld\n" RESET, ret);
 	}
 }
 

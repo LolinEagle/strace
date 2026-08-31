@@ -13,6 +13,12 @@
 #include <sys/uio.h>
 #include <elf.h>
 
+#define RESET "\33[0m"
+#define RED "\33[31m"
+#define GREEN "\33[32m"
+#define YELLOW "\33[33m"
+#define MAGENTA "\33[35m"
+
 typedef enum s_arch
 {
 	ARCH_64,
