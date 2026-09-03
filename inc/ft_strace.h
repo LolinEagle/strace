@@ -1,6 +1,7 @@
 #pragma once
 
 #define _GNU_SOURCE
+#define MAX_STR_LEN 256
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +13,7 @@
 #include <sys/user.h>
 #include <sys/uio.h>
 #include <elf.h>
+#include <ctype.h>
 
 #define RESET "\33[0m"
 #define RED "\33[31m"
@@ -25,10 +27,24 @@ typedef enum s_arch
 	ARCH_32
 }	t_arch;
 
+typedef enum s_arg_type
+{
+	NONE = 0,
+	INT,	// Decimal signed int: 1, -1
+	UINT,	// Decimal unsigned int / size_t: 6
+	HEX,	// Hexadecimal (flags/masks): 0x77
+	PTR,	// Generic pointer: 0x7ffd1234 or NULL
+	STR,	// NUL-terminated string: "Hello\n"
+	OCTAL,	// Octal
+	ARG_TYPE_NBR
+}	t_arg_type;
+
 typedef struct s_syscall_entry
 {
 	const char	*name;
 	int			nargs;
+	t_arg_type	ret_type;
+	t_arg_type	args_type[6];
 }	t_syscall_entry;
 
 // 32-bit register structure for x86 compat mode on x86_64
@@ -75,3 +91,6 @@ void		print_syscall_entry(t_tracer *t);
 void		print_syscall_exit(t_tracer *t);
 void		print_signal(siginfo_t *si);
 const char	*get_signal_name(int signo);
+
+// Read string
+void		print_syscall_entry_string(pid_t child_pid, unsigned long args);

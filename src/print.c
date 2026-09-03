@@ -53,11 +53,11 @@ void	print_syscall_entry(t_tracer *t)
 {
 	long			sys_no;
 	const char		*name = NULL;
-	int				nargs;
+	t_syscall_entry	e;
 	unsigned long	args[6];
 	int				i;
 
-	nargs = 6;
+	e.nargs = 6;
 	memset(args, 0, sizeof(args));
 	if (t->arch == ARCH_64)
 	{
@@ -67,7 +67,10 @@ void	print_syscall_entry(t_tracer *t)
 			&& g_syscalls_64[sys_no].name)
 		{
 			name = g_syscalls_64[sys_no].name;
-			nargs = g_syscalls_64[sys_no].nargs;
+			e.nargs = g_syscalls_64[sys_no].nargs;
+			i = -1;
+			while (++i < e.nargs)
+				e.args_type[i] = g_syscalls_64[sys_no].args_type[i];
 		}
 		args[0] = t->regs64.rdi;
 		args[1] = t->regs64.rsi;
@@ -84,7 +87,10 @@ void	print_syscall_entry(t_tracer *t)
 			&& g_syscalls_32[sys_no].name)
 		{
 			name = g_syscalls_32[sys_no].name;
-			nargs = g_syscalls_32[sys_no].nargs;
+			e.nargs = g_syscalls_32[sys_no].nargs;
+			i = -1;
+			while (++i < e.nargs)
+				e.args_type[i] = g_syscalls_32[sys_no].args_type[i];
 		}
 		args[0] = t->regs32.ebx;
 		args[1] = t->regs32.ecx;
@@ -99,12 +105,29 @@ void	print_syscall_entry(t_tracer *t)
 	else
 		fprintf(stderr, YELLOW "sys_%ld" RESET "(", t->orig_syscall);
 	i = 0;
-	while (i < nargs)
+	while (i < e.nargs)
 	{
-		if (args[i] == 0)
-			fprintf(stderr, "%s" MAGENTA "0" RESET, format(i));
+		fprintf(stderr, "%s" MAGENTA, format(i));
+		if (e.args_type[i] == INT)
+			fprintf(stderr, "%ld", (long)args[i]);
+		else if (e.args_type[i] == UINT)
+			fprintf(stderr, "%lu", (unsigned long)args[i]);
+		else if (e.args_type[i] == HEX)
+			fprintf(stderr, "0x%lx", (unsigned long)args[i]);
+		else if (e.args_type[i] == PTR)
+		{
+			if (args[i] == 0)
+				fprintf(stderr, "NULL");
+			else
+				fprintf(stderr, "0x%lx", (unsigned long)args[i]);
+		}
+		else if (e.args_type[i] == STR)
+			print_syscall_entry_string(t->child_pid, args[i]);
+		else if (e.args_type[i] == OCTAL)
+			fprintf(stderr, "0%lo", (unsigned long)args[i]);
 		else
-			fprintf(stderr, "%s" MAGENTA "0x%lx" RESET, format(i), args[i]);
+			fprintf(stderr, "0x%lx", args[i]);
+		fprintf(stderr, RESET);
 		i++;
 	}
 	fprintf(stderr, ")");
@@ -143,10 +166,9 @@ void	print_syscall_exit(t_tracer *t)
 
 void	print_signal(siginfo_t *si)
 {
-	fprintf(stderr, "--- %s {si_signo=%s, si_code=%d",
-		get_signal_name(si->si_signo),
-		get_signal_name(si->si_signo),
-		si->si_code);
+	const char	*sig = get_signal_name(si->si_signo);
+
+	fprintf(stderr, "--- %s {si_signo=%s, si_code=%d", sig, sig, si->si_code);
 	if (si->si_signo == SIGSEGV || si->si_signo == SIGILL
 		|| si->si_signo == SIGBUS || si->si_signo == SIGFPE)
 		fprintf(stderr, ", si_addr=%p", si->si_addr);

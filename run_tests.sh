@@ -63,32 +63,24 @@ run_test()
 
 echo -e "\n${CYAN}=== Starting FT_STRACE Tests ===${RESET}"
 
-# 1. Arguments and Binary Check
+# Arguments and Binary Check
 run_test "No arguments" "$FT_STRACE" "must have PROG"
 run_test "Non-existent binary" "$FT_STRACE /non/existent/path" "execvpe|No such file"
 
-# 2. Basic 64-bit execution & Exit Codes
-run_test "Standard /bin/echo" "$FT_STRACE /bin/echo Hello" "write\(.*Hello"
+# Basic 64-bit execution & Exit Codes
 run_test "Exit status code 42" "$FT_STRACE $BUILD_DIR/basic_64" "exited with 42"
 
-# 3. Errno Handling
-run_test "Errno ENOENT handling" "$FT_STRACE $BUILD_DIR/errno_64" "(open|openat)\(.*errno 2\)"
-run_test "Errno EBADF handling" "$FT_STRACE $BUILD_DIR/errno_64" "close\(.*errno 9\)"
-
-# 4. Signal Handling
+# Signal Handling
 run_test "SIGSEGV Crash Detection" "$FT_STRACE $BUILD_DIR/signal_64 segv" "--- SIGSEGV" "killed by SIGSEGV"
 run_test "SIGFPE Crash Detection" "$FT_STRACE $BUILD_DIR/signal_64 fpe" "--- SIGFPE" "killed by SIGFPE"
 run_test "SIGUSR1 Caught Signal" "$FT_STRACE $BUILD_DIR/signal_64 usr1" "--- SIGUSR1" "exited with 0"
 run_test "SIGTERM Termination" "$FT_STRACE $BUILD_DIR/signal_64 term" "killed by SIGTERM"
 
-# 5. 32-bit Compatibility
+# 32-bit Compatibility
 if [ $SUPPORTS_32 -eq 1 ]; then
 	run_test "No arguments" "$FT_STRACE" "must have PROG"
 	run_test "Non-existent binary" "$FT_STRACE /non/existent/path" "execvpe|No such file"
-	run_test "Standard /bin/echo" "$FT_STRACE /bin/echo Hello" "write\(.*Hello"
 	run_test "Exit status code 42" "$FT_STRACE $BUILD_DIR/basic_32" "exited with 42"
-	run_test "Errno ENOENT handling" "$FT_STRACE $BUILD_DIR/errno_32" "(open|openat)\(.*errno 2\)"
-	run_test "Errno EBADF handling" "$FT_STRACE $BUILD_DIR/errno_32" "close\(.*errno 9\)"
 	run_test "SIGSEGV Crash Detection" "$FT_STRACE $BUILD_DIR/signal_32 segv" "--- SIGSEGV" "killed by SIGSEGV"
 	run_test "SIGFPE Crash Detection" "$FT_STRACE $BUILD_DIR/signal_32 fpe" "--- SIGFPE" "killed by SIGFPE"
 	run_test "SIGUSR1 Caught Signal" "$FT_STRACE $BUILD_DIR/signal_32 usr1" "--- SIGUSR1" "exited with 0"

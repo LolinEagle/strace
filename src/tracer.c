@@ -76,7 +76,7 @@ int	run_tracer(pid_t child_pid)
 		{
 			if (t.in_syscall)
 				fprintf(stderr, " = ?\n");
-			fprintf(stderr, "+++ killed by %s +++\n",
+			fprintf(stderr, "+++ killed by %s (core dumped) +++\n",
 				get_signal_name(WTERMSIG(status)));
 			return (128 + WTERMSIG(status));
 		}

@@ -1,5 +1,10 @@
 NAME		=	ft_strace
-SRC			=	main.c print.c syscalls_32.c syscalls_64.c tracer.c
+SRC			=	main.c \
+				print.c \
+				read_string.c \
+				syscalls_32.c \
+				syscalls_64.c \
+				tracer.c
 CC			=	gcc
 RM			=	rm -rf
 FLAGS		=	-Wall -Werror -Wextra
@@ -30,7 +35,7 @@ norm:
 	@norminette | grep -v $(IGNORE) || true
 
 test:re
-	@clear && bash run_tests.sh
+	@clear && bash test_strace.sh
 
 $(OBJ_PATH)%.o:$(SRC_PATH)%.c | $(OBJ_DIRS)
 	$(CC) $(FLAGS) $(INC) -c $< -o $@
