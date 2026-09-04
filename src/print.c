@@ -150,14 +150,14 @@ void	print_syscall_exit(t_tracer *t)
 		fprintf(stderr, " = " GREEN "0\n" RESET);
 	else if (t->arch == ARCH_32)
 	{
-		if ((uint32_t)ret > 10000)
+		if ((uint32_t)ret > 32768)
 			fprintf(stderr, " = " GREEN "0x%x\n" RESET, (uint32_t)ret);
 		else
 			fprintf(stderr, " = " GREEN "%u\n" RESET, (uint32_t)ret);
 	}
 	else
 	{
-		if ((unsigned long)ret > 10000)
+		if ((unsigned long)ret > 32768)
 			fprintf(stderr, " = " GREEN "0x%lx\n" RESET, (unsigned long)ret);
 		else
 			fprintf(stderr, " = " GREEN "%ld\n" RESET, ret);
