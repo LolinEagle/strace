@@ -29,7 +29,7 @@ typedef enum s_arch
 
 typedef enum s_arg_type
 {
-	NONE = 0,
+	NONE,
 	INT,	// Decimal signed int: 1, -1
 	UINT,	// Decimal unsigned int / size_t: 6
 	HEX,	// Hexadecimal (flags/masks): 0x77
