@@ -72,6 +72,12 @@ void	print_syscall_entry(t_tracer *t)
 			while (++i < e.nargs)
 				e.args_type[i] = g_syscalls_64[sys_no].args_type[i];
 		}
+		else
+		{
+			i = -1;
+			while (++i < 6)
+				e.args_type[i] = NONE;
+		}
 		args[0] = t->regs64.rdi;
 		args[1] = t->regs64.rsi;
 		args[2] = t->regs64.rdx;
@@ -92,6 +98,12 @@ void	print_syscall_entry(t_tracer *t)
 			while (++i < e.nargs)
 				e.args_type[i] = g_syscalls_32[sys_no].args_type[i];
 		}
+		else
+		{
+			i = -1;
+			while (++i < 6)
+				e.args_type[i] = NONE;
+		}
 		args[0] = t->regs32.ebx;
 		args[1] = t->regs32.ecx;
 		args[2] = t->regs32.edx;
@@ -107,7 +119,7 @@ void	print_syscall_entry(t_tracer *t)
 	i = 0;
 	while (i < e.nargs)
 	{
-		fprintf(stderr, "%s" MAGENTA, format(i));
+		fprintf(stderr, RESET "%s" MAGENTA, format(i));
 		if (e.args_type[i] == INT)
 			fprintf(stderr, "%ld", (long)args[i]);
 		else if (e.args_type[i] == UINT)
@@ -125,12 +137,20 @@ void	print_syscall_entry(t_tracer *t)
 			print_syscall_entry_string(t->child_pid, args[i]);
 		else if (e.args_type[i] == OCTAL)
 			fprintf(stderr, "0%lo", (unsigned long)args[i]);
+		else if (e.args_type[i] == ARGV)
+			print_syscall_entry_argv(t);
 		else
 			fprintf(stderr, "0x%lx", args[i]);
-		fprintf(stderr, RESET);
 		i++;
 	}
-	fprintf(stderr, ")");
+	if (name && strcmp(name, "execve") == 0)
+	{
+		i = 0;
+		while (t->envp[i] != NULL)
+			i++;
+		fprintf(stderr, CYAN " /* %i vars */", i);
+	}
+	fprintf(stderr, RESET ")");
 	fflush(stderr);
 }
 
@@ -144,7 +164,22 @@ void	print_syscall_exit(t_tracer *t)
 		ret = (long)(int32_t)t->regs32.eax;
 
 	// Handle standard negative errno convention (-4095 to -1)
-	if (ret < 0 && ret >= -4095)
+	if (ret == -1)
+		fprintf(stderr, " = " GREEN "-1 " RED
+			"EPERM (Operation not permitted)\n" RESET);
+	else if (ret == -2)
+		fprintf(stderr, " = " GREEN "-1 " RED
+			"ENOENT (No such file or directory)\n" RESET);
+	else if (ret == -3)
+		fprintf(stderr, " = " GREEN "-1 " RED
+			"ESRCH (No such process)\n" RESET);
+	else if (ret == -4)
+		fprintf(stderr, " = " GREEN "-1 " RED
+			"EINTR (Interrupted system call)\n" RESET);
+	else if (ret == -5)
+		fprintf(stderr, " = " GREEN "-1 " RED
+			"EIO (Input/output error)\n" RESET);
+	else if (ret < 0 && ret >= -4095)
 		fprintf(stderr, " = " GREEN "-1 " RED "(errno %ld)\n" RESET, -ret);
 	else if (ret == 0)
 		fprintf(stderr, " = " GREEN "0\n" RESET);

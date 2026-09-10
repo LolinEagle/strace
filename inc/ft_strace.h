@@ -20,6 +20,7 @@
 #define GREEN "\33[32m"
 #define YELLOW "\33[33m"
 #define MAGENTA "\33[35m"
+#define CYAN "\33[36m"
 
 typedef enum s_arch
 {
@@ -36,6 +37,7 @@ typedef enum s_arg_type
 	PTR,	// Generic pointer: 0x7ffd1234 or NULL
 	STR,	// NUL-terminated string: "Hello\n"
 	OCTAL,	// Octal
+	ARGV,
 	ARG_TYPE_NBR
 }	t_arg_type;
 
@@ -71,6 +73,9 @@ typedef struct s_user_regs_struct32
 
 typedef struct s_tracer
 {
+	int						argc;
+	char					**argv;
+	char					**envp;
 	pid_t					child_pid;
 	bool					in_syscall;
 	t_arch					arch;
@@ -86,7 +91,7 @@ extern const t_syscall_entry	g_syscalls_32[];
 extern const size_t				g_syscalls_32_count;
 
 // Prototypes
-int			run_tracer(pid_t child_pid);
+int			run_tracer(pid_t child_pid, int argc, char **argv, char **envp);
 void		print_syscall_entry(t_tracer *t);
 void		print_syscall_exit(t_tracer *t);
 void		print_signal(siginfo_t *si);
@@ -94,3 +99,4 @@ const char	*get_signal_name(int signo);
 
 // Read string
 void		print_syscall_entry_string(pid_t child_pid, unsigned long args);
+void		print_syscall_entry_argv(t_tracer *t);

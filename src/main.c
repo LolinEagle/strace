@@ -80,6 +80,5 @@ int	main(int argc, char **argv, char **envp)
 		return (1);
 	}
 	close(sync_pipe[1]);
-
-	return (run_tracer(pid));
+	return (run_tracer(pid, argc, argv, envp));
 }

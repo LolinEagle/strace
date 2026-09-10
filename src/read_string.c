@@ -85,3 +85,19 @@ void	print_syscall_entry_string(pid_t child_pid, unsigned long args)
 	else
 		fprintf(stderr, "0x%lx", (unsigned long)args);
 }
+
+void	print_syscall_entry_argv(t_tracer *t)
+{
+	int	i;
+
+	fprintf(stderr, "[");
+	i = 1;
+	while (1)
+	{
+		fprintf(stderr, "\"%s\"", t->argv[i]);
+		if (++i >= t->argc)
+			break ;
+		fprintf(stderr, ", ");
+	}
+	fprintf(stderr, "]");
+}

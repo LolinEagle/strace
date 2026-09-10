@@ -2,7 +2,7 @@
 
 // Linux x86_64 standard syscall table snippet
 const t_syscall_entry	g_syscalls_64[] = {
-[0] = {"read", 3, INT, {INT, PTR, UINT}},
+[0] = {"read", 3, INT, {INT, STR, UINT}},
 [1] = {"write", 3, INT, {INT, STR, UINT}},
 [2] = {"open", 3, INT, {STR, HEX, OCTAL}},
 [3] = {"close", 1, INT, {INT}},
@@ -11,7 +11,7 @@ const t_syscall_entry	g_syscalls_64[] = {
 [6] = {"lstat", 2, INT, {STR, PTR}},
 [7] = {"poll", 3, INT, {PTR, UINT, INT}},
 [8] = {"lseek", 3, INT, {INT, INT, INT}},
-[9] = {"mmap", 6, PTR, {PTR, UINT, INT, INT, INT, INT}},
+[9] = {"mmap", 6, PTR, {PTR, UINT, INT, INT, UINT, INT}},
 [10] = {"mprotect", 3, INT, {PTR, UINT, INT}},
 [11] = {"munmap", 2, INT, {PTR, UINT}},
 [12] = {"brk", 1, PTR, {PTR}},
@@ -61,7 +61,7 @@ const t_syscall_entry	g_syscalls_64[] = {
 [56] = {"clone", 5, INT, {UINT, PTR, PTR, PTR, PTR}},
 [57] = {"fork", 0, INT, {}},
 [58] = {"vfork", 0, INT, {}},
-[59] = {"execve", 3, INT, {STR, PTR, PTR}},
+[59] = {"execve", 3, INT, {STR, ARGV, PTR}},
 [60] = {"exit", 1, INT, {INT}},
 [61] = {"wait4", 4, INT, {INT, PTR, INT, PTR}},
 [62] = {"kill", 2, INT, {INT, INT}},

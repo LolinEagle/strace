@@ -21,7 +21,7 @@ static int	get_registers(t_tracer *t)
 	return (0);
 }
 
-int	run_tracer(pid_t child_pid)
+int	run_tracer(pid_t child_pid, int argc, char **argv, char **envp)
 {
 	int			status;
 	t_tracer	t;
@@ -29,6 +29,9 @@ int	run_tracer(pid_t child_pid)
 	siginfo_t	si;
 
 	memset(&t, 0, sizeof(t));
+	t.argc = argc;
+	t.argv = argv;
+	t.envp = envp;
 	t.child_pid = child_pid;
 	t.in_syscall = false;
 

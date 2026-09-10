@@ -46,13 +46,14 @@ gcc -m32 "test/sigalrm.c" -o "$TMP_DIR/sigalrm32"
 gcc "test/sigfpe.c" -o "$TMP_DIR/sigfpe"
 gcc -m32 "test/sigfpe.c" -o "$TMP_DIR/sigfpe32"
 
-# Helper function to normalize syscall names & exit lines for robust matching
-# (Extracts syscall names, signals, and exit/killed summaries)
 normalize_trace(){
 	local input="$1"
-	grep -E '^[a-zA-Z0-9_]+\(|^--- SIG|\+\+\+ (exited|killed)' "$input" \
-		| sed -E 's/\(.*//g' \
-		| sed -E 's/.*(--- SIG[A-Z0-9]+).*/\1/'
+
+	sed -E \
+		-e 's/\([^)]*\)/()/g' \
+		-e 's/0x[0-9a-fA-F]+/0x[ADDR]/g' \
+		-e 's/ +/ /g' \
+		"$input"
 }
 
 run_test(){
@@ -100,6 +101,14 @@ run_test(){
 	# 3. Check that ft_strace captured syscalls (non-empty output)
 	if [ ! -s "$TMP_DIR/ft_norm.txt" ]; then
 		test_fail=1
+	fi
+
+	# Compare the normalized outputs directly
+	if diff -u "$TMP_DIR/real_norm.txt" "$TMP_DIR/ft_norm.txt" > "$TMP_DIR/diff.txt"; then
+		echo "[PASS]"
+	else
+		echo "[FAIL] Diff found:"
+		cat "$TMP_DIR/diff.txt"
 	fi
 
 	if [ "$test_fail" -eq 0 ]; then
