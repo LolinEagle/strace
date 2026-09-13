@@ -1,0 +1,6 @@
+#define RESET	""
+#define RED		""
+#define GREEN	""
+#define YELLOW	""
+#define MAGENTA	""
+#define CYAN	""

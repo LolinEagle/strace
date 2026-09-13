@@ -5,7 +5,6 @@ GREEN="\033[0;32m"
 RED="\033[0;31m"
 YELLOW="\033[0;33m"
 CYAN="\033[0;36m"
-BOLD="\033[1m"
 RESET="\033[0m"
 
 FT_STRACE="./ft_strace"
@@ -18,14 +17,11 @@ FAILED=0
 mkdir -p "$TMP_DIR"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-echo -e "${BOLD}${CYAN}=== Building ft_strace ===${RESET}"
 make -B > /dev/null
 if [ ! -f "$FT_STRACE" ]; then
 	echo -e "${RED}Error: ft_strace binary not found.${RESET}"
 	exit 1
 fi
-
-echo -e "${BOLD}${CYAN}=== Preparing Test Binaries ===${RESET}"
 
 # 1. Basic 64-bit C program
 gcc "test/basic.c" -o "$TMP_DIR/basic"
@@ -49,10 +45,17 @@ gcc -m32 "test/sigfpe.c" -o "$TMP_DIR/sigfpe32"
 normalize_trace(){
 	local input="$1"
 
+	# Removing Arguments inside Parentheses
+	# Standardizing Spacing Around =
+	# Normalizing Memory/Hex Addresses
+	# Normalizing Thread/Process ID Return Values
+	# Normalizing Signal Sender PIDs
 	sed -E \
 		-e 's/\([^)]*\)/()/g' \
+		-e 's/\)[[:space:]]*=/) =/g' \
 		-e 's/0x[0-9a-fA-F]+/0x[ADDR]/g' \
-		-e 's/ +/ /g' \
+		-e 's/^(set_tid_address|gettid|getpid|getppid)\(\)[[:space:]]*=[[:space:]]*[0-9]+/\1() = [TID]/g' \
+		-e 's/si_pid=[0-9]+/si_pid=[PID]/g' \
 		"$input"
 }
 
@@ -84,7 +87,7 @@ run_test(){
 	local real_exit_summary
 	real_exit_summary=$(grep -E '^\+\+\+ (exited|killed)' "$real_err" | tail -n1)
 
-	echo -ne "[TEST] $title ... "
+	echo -ne "[TEST] $title\n"
 
 	local test_fail=0
 	
@@ -105,17 +108,17 @@ run_test(){
 
 	# Compare the normalized outputs directly
 	if diff -u "$TMP_DIR/real_norm.txt" "$TMP_DIR/ft_norm.txt" > "$TMP_DIR/diff.txt"; then
-		echo "[PASS]"
+		echo -e "${GREEN}[DIFF] No diff found${RESET}"
 	else
-		echo "[FAIL] Diff found:"
-		cat "$TMP_DIR/diff.txt"
+		echo -e "${YELLOW}[DIFF] Diff found :${RESET}"
+		grep -E '^[+-][^+-]' "$TMP_DIR/diff.txt"
 	fi
 
 	if [ "$test_fail" -eq 0 ]; then
-		echo -e "${GREEN}${BOLD}[PASS]${RESET}"
+		echo -e "${GREEN}[PASS]${RESET}"
 		((PASSED++))
 	else
-		echo -e "${RED}${BOLD}[FAIL]${RESET}"
+		echo -e "${RED}[FAIL]${RESET}"
 		((FAILED++))
 		echo -e "${YELLOW}--- ft_strace output snippet ---${RESET}"
 		tail -n 10 "$ft_err"
@@ -125,7 +128,7 @@ run_test(){
 	fi
 }
 
-echo -e "\n${BOLD}${CYAN}=== Running Test Cases ===${RESET}\n"
+echo -e "${CYAN}Running Test Cases :${RESET}"
 
 # Standard 64-bit commands
 run_test "Standard /bin/echo" /bin/echo "42 Network"
@@ -151,17 +154,17 @@ else
 	echo -e "${YELLOW}[SKIP] 32-bit test skipped (gcc-multilib not installed).${RESET}"
 fi
 
-make fclean
+make -s fclean
 
 # Summary
-echo -e "\n${BOLD}${CYAN}=== Summary ===${RESET}"
-echo -e "Total Passed: ${GREEN}${BOLD}${PASSED}${RESET}"
-echo -e "Total Failed: ${RED}${BOLD}${FAILED}${RESET}"
+echo -e "\n${CYAN}Summary :${RESET}"
+echo -e "Total Passed: ${GREEN}${PASSED}${RESET}"
+echo -e "Total Failed: ${RED}${FAILED}${RESET}"
 
 if [ "$FAILED" -eq 0 ]; then
-	echo -e "${GREEN}${BOLD}All tests passed successfully!${RESET}"
+	echo -e "${GREEN}All tests passed successfully!${RESET}"
 	exit 0
 else
-	echo -e "${RED}${BOLD}Some tests failed.${RESET}"
+	echo -e "${RED}Some tests failed.${RESET}"
 	exit 1
 fi

@@ -15,12 +15,7 @@
 #include <elf.h>
 #include <ctype.h>
 
-#define RESET "\33[0m"
-#define RED "\33[31m"
-#define GREEN "\33[32m"
-#define YELLOW "\33[33m"
-#define MAGENTA "\33[35m"
-#define CYAN "\33[36m"
+#include "colors_ansi.h"
 
 typedef enum s_arch
 {
