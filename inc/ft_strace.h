@@ -87,10 +87,15 @@ extern const size_t				g_syscalls_32_count;
 
 // Prototypes
 int			run_tracer(pid_t child_pid, int argc, char **argv, char **envp);
+
+// Print getter
+const char	*get_signal_name(int signo);
+const char	*get_si_codes(int si_code, int si_signo);
+
+// Print
 void		print_syscall_entry(t_tracer *t);
 void		print_syscall_exit(t_tracer *t);
 void		print_signal(siginfo_t *si);
-const char	*get_signal_name(int signo);
 
 // Read string
 void		print_syscall_entry_string(pid_t child_pid, unsigned long args);

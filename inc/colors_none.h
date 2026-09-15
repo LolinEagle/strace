@@ -2,5 +2,6 @@
 #define RED		""
 #define GREEN	""
 #define YELLOW	""
+#define BLUE	""
 #define MAGENTA	""
 #define CYAN	""

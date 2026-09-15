@@ -1,46 +1,5 @@
 #include "ft_strace.h"
 
-const char	*get_signal_name(int signo)
-{
-	static const char *const	sig_names[NSIG] = {
-	[SIGHUP] = "SIGHUP",
-	[SIGINT] = "SIGINT",
-	[SIGQUIT] = "SIGQUIT",
-	[SIGILL] = "SIGILL",
-	[SIGTRAP] = "SIGTRAP",
-	[SIGABRT] = "SIGABRT",
-	[SIGBUS] = "SIGBUS",
-	[SIGFPE] = "SIGFPE",
-	[SIGKILL] = "SIGKILL",
-	[SIGUSR1] = "SIGUSR1",
-	[SIGSEGV] = "SIGSEGV",
-	[SIGUSR2] = "SIGUSR2",
-	[SIGPIPE] = "SIGPIPE",
-	[SIGALRM] = "SIGALRM",
-	[SIGTERM] = "SIGTERM",
-	[SIGCHLD] = "SIGCHLD",
-	[SIGCONT] = "SIGCONT",
-	[SIGSTOP] = "SIGSTOP",
-	[SIGTSTP] = "SIGTSTP",
-	[SIGTTIN] = "SIGTTIN",
-	[SIGTTOU] = "SIGTTOU",
-	[SIGURG] = "SIGURG",
-	[SIGXCPU] = "SIGXCPU",
-	[SIGXFSZ] = "SIGXFSZ",
-	[SIGVTALRM] = "SIGVTALRM",
-	[SIGPROF] = "SIGPROF",
-	[SIGWINCH] = "SIGWINCH",
-	[SIGIO] = "SIGIO",
-	[SIGPWR] = "SIGPWR",
-	[SIGSYS] = "SIGSYS",
-	};
-
-	if (signo > 0 && signo < NSIG && sig_names[signo] != NULL)
-		return (sig_names[signo]);
-
-	return ("UNKNOWN");
-}
-
 char	*format(int i)
 {
 	if (i > 0)
@@ -336,14 +295,14 @@ void	print_syscall_exit(t_tracer *t)
 	}
 	else if (t->arch == ARCH_32)
 	{
-		if ((uint32_t)ret > 32768)
+		if ((uint32_t)ret > 65536)
 			fprintf(stderr, " = " GREEN "0x%x\n" RESET, (uint32_t)ret);
 		else
 			fprintf(stderr, " = " GREEN "%u\n" RESET, (uint32_t)ret);
 	}
 	else
 	{
-		if ((unsigned long)ret > 32768)
+		if ((unsigned long)ret > 65536)
 			fprintf(stderr, " = " GREEN "0x%lx\n" RESET, (unsigned long)ret);
 		else
 			fprintf(stderr, " = " GREEN "%ld\n" RESET, ret);
@@ -354,10 +313,16 @@ void	print_signal(siginfo_t *si)
 {
 	const char	*sig = get_signal_name(si->si_signo);
 
-	fprintf(stderr, "--- %s {si_signo=%s, si_code=%d", sig, sig, si->si_code);
+	fprintf(stderr, "--- %s {si_signo=" MAGENTA "%s" RESET ", si_code=" BLUE
+		"%s" RESET, sig, sig, get_si_codes(si->si_code, si->si_signo));
 	if (si->si_signo == SIGSEGV || si->si_signo == SIGILL
 		|| si->si_signo == SIGBUS || si->si_signo == SIGFPE)
-		fprintf(stderr, ", si_addr=%p", si->si_addr);
+	{
+		if (si->si_addr == 0)
+			fprintf(stderr, ", si_addr=" MAGENTA "NULL" RESET);
+		else
+			fprintf(stderr, ", si_addr=" MAGENTA "%p" RESET, si->si_addr);
+	}
 	fprintf(stderr, "} ---\n");
 	fflush(stderr);
 }

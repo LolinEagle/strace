@@ -51,7 +51,7 @@ normalize_trace(){
 	# Normalizing Thread/Process ID Return Values
 	# Normalizing Signal Sender PIDs
 	sed -E \
-		-e 's/\([^)]*\)/()/g' \
+		-e 's/\(.*\)([[:space:]]*=)/\(\)\1/g' \
 		-e 's/\)[[:space:]]*=/) =/g' \
 		-e 's/0x[0-9a-fA-F]+/0x[ADDR]/g' \
 		-e 's/^(set_tid_address|gettid|getpid|getppid)\(\)[[:space:]]*=[[:space:]]*[0-9]+/\1() = [TID]/g' \
@@ -107,11 +107,11 @@ run_test(){
 	fi
 
 	# Compare the normalized outputs directly
-	if diff -u "$TMP_DIR/real_norm.txt" "$TMP_DIR/ft_norm.txt" > "$TMP_DIR/diff.txt"; then
+	if diff -u0 "$TMP_DIR/real_norm.txt" "$TMP_DIR/ft_norm.txt" > "$TMP_DIR/diff.txt"; then
 		echo -e "${GREEN}[DIFF] No diff found${RESET}"
 	else
 		echo -e "${YELLOW}[DIFF] Diff found :${RESET}"
-		grep -E '^[+-][^+-]' "$TMP_DIR/diff.txt"
+		cat $TMP_DIR/diff.txt
 	fi
 
 	if [ "$test_fail" -eq 0 ]; then

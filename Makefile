@@ -1,5 +1,6 @@
 NAME		=	ft_strace
 SRC			=	main.c \
+				print_getter.c \
 				print.c \
 				read_string.c \
 				syscalls_32.c \
