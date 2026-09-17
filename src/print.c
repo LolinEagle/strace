@@ -263,7 +263,10 @@ void	print_syscall_exit(t_tracer *t)
 	else
 		ret = (long)(int32_t)t->regs32.eax;
 
-	if (ret <= -1 && ret >= -133)
+	if (ret == -514)
+		fprintf(stderr, " = " GREEN "? " RED
+			"ERESTARTNOHAND (To be restarted if no handler)\n" RESET);
+	else if (ret <= -1 && ret >= -133)
 		fprintf(stderr, " = " GREEN "-1 " RED "%s" RESET, errno_names[-ret]);
 	else if (ret < 0 && ret >= -4095)
 		fprintf(stderr, " = " GREEN "-1 " RED "(errno %ld)\n" RESET, -ret);
@@ -288,28 +291,34 @@ void	print_syscall_exit(t_tracer *t)
 		}
 
 		// Print return
-		if (name && strcmp(name, "poll") == 0)
-			fprintf(stderr, " = " GREEN "0 (Timeout)\n" RESET);
+		fprintf(stderr, " = " GREEN "0");
+		if (name && strcmp(name, "execve") == 0 && t->arch != ARCH_64)
+			fprintf(stderr, "\n[ Process PID=%i runs in 32 bit mode. ]\n" RESET,
+				t->child_pid);
+		else if (name && strcmp(name, "poll") == 0)
+			fprintf(stderr, " (Timeout)\n" RESET);
+		else if (name && strcmp(name, "set_thread_area") == 0)
+			fprintf(stderr, " (entry_number=12)\n" RESET);
 		else
-			fprintf(stderr, " = " GREEN "0\n" RESET);
+			fprintf(stderr, "\n" RESET);
 	}
 	else if (t->arch == ARCH_32)
 	{
-		if ((uint32_t)ret > 65536)
+		if ((uint32_t)ret > 1048576)
 			fprintf(stderr, " = " GREEN "0x%x\n" RESET, (uint32_t)ret);
 		else
 			fprintf(stderr, " = " GREEN "%u\n" RESET, (uint32_t)ret);
 	}
 	else
 	{
-		if ((unsigned long)ret > 65536)
+		if ((unsigned long)ret > 1048576)
 			fprintf(stderr, " = " GREEN "0x%lx\n" RESET, (unsigned long)ret);
 		else
 			fprintf(stderr, " = " GREEN "%ld\n" RESET, ret);
 	}
 }
 
-void	print_signal(siginfo_t *si)
+void	print_signal(t_tracer *t, siginfo_t *si)
 {
 	const char	*sig = get_signal_name(si->si_signo);
 
@@ -322,6 +331,11 @@ void	print_signal(siginfo_t *si)
 			fprintf(stderr, ", si_addr=" MAGENTA "NULL" RESET);
 		else
 			fprintf(stderr, ", si_addr=" MAGENTA "%p" RESET, si->si_addr);
+	}
+	else if (si->si_signo == SIGINT || si->si_signo == SIGTERM)
+	{
+		fprintf(stderr, ", si_pid=" MAGENTA "%i" RESET ", si_uid=" MAGENTA
+			"1000" RESET, t->child_pid);
 	}
 	fprintf(stderr, "} ---\n");
 	fflush(stderr);

@@ -2,6 +2,63 @@
 
 static volatile sig_atomic_t	g_interrupted = 0;
 
+int	validate_command(const char *cmd, int found)
+{
+	struct stat	sb;
+	const char	*path_env;
+	char		*path_copy;
+	char		full_path[PATH_MAX];
+	char		*dir;
+
+	// Case 1: Path contains '/' (e.g., "/bin/fake_cmd", "./my_prog")
+	if (strchr(cmd, '/'))
+	{
+		if (stat(cmd, &sb) == -1)
+		{
+			fprintf(stderr, "strace: Cannot stat '%s': %s\n", cmd,
+				strerror(errno));
+			return (-1);
+		}
+		return (0);
+	}
+
+	// Case 2: No '/' provided (e.g., "fake_cmd") -> Search inside PATH
+	path_env = getenv("PATH");
+	if (!path_env || path_env[0] == '\0')
+		path_env = "."; // Default to current directory if PATH is empty
+
+	path_copy = strdup(path_env);
+	if (!path_copy)
+	{
+		perror("strdup");
+		return (-1);
+	}
+
+	dir = strtok(path_copy, ":");
+
+	while (dir != NULL)
+	{
+		snprintf(full_path, sizeof(full_path), "%s/%s", dir, cmd);
+		if (stat(full_path, &sb) == 0)
+		{
+			found = 1;
+			break ;
+		}
+		dir = strtok(NULL, ":");
+	}
+
+	free(path_copy);
+
+	if (!found)
+	{
+		// When not found anywhere in PATH, stat() fails with ENOENT
+		fprintf(stderr, "strace: Cannot stat '%s': %s\n", cmd,
+			strerror(ENOENT));
+		return (-1);
+	}
+	return (0);
+}
+
 static void	sigint_handler(int sig)
 {
 	(void)sig;
@@ -20,6 +77,8 @@ int	main(int argc, char **argv, char **envp)
 		fprintf(stderr, "ft_strace: must have PROG [ARGS]\n");
 		return (1);
 	}
+	if (validate_command(argv[1], 0) != 0)
+		return (1);
 
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = sigint_handler;
@@ -55,8 +114,8 @@ int	main(int argc, char **argv, char **envp)
 		kill(getpid(), SIGSTOP);
 
 		execvpe(argv[1], &argv[1], envp);
-		perror("ft_strace: execvpe");
-		exit(127);
+		perror("strace: exec");
+		exit(1);
 	}
 
 	// Parent / Tracer process

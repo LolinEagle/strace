@@ -11,6 +11,8 @@
 #include <sys/wait.h>
 #include <sys/ptrace.h>
 #include <sys/user.h>
+#include <sys/stat.h>
+#include <limits.h>
 #include <sys/uio.h>
 #include <elf.h>
 #include <ctype.h>
@@ -95,7 +97,7 @@ const char	*get_si_codes(int si_code, int si_signo);
 // Print
 void		print_syscall_entry(t_tracer *t);
 void		print_syscall_exit(t_tracer *t);
-void		print_signal(siginfo_t *si);
+void		print_signal(t_tracer *t, siginfo_t *si);
 
 // Read string
 void		print_syscall_entry_string(pid_t child_pid, unsigned long args);

@@ -72,7 +72,7 @@ const char	*get_si_codes(int si_code, int si_signo)
 	};
 	static char					str[4];
 
-	if (si_signo == SIGALRM)
+	if (si_signo == SIGINT || si_signo == SIGALRM || si_signo == SIGTERM)
 	{
 		if (si_code == 0)
 			return ("SI_USER");// sent by kill, sigsend, raise

@@ -79,9 +79,13 @@ int	run_tracer(pid_t child_pid, int argc, char **argv, char **envp)
 		{
 			if (t.in_syscall)
 				fprintf(stderr, " = ?\n");
-			fprintf(stderr, "+++ killed by %s (core dumped) +++\n",
-				get_signal_name(WTERMSIG(status)));
-			return (128 + WTERMSIG(status));
+			sig = WTERMSIG(status);
+			if (WCOREDUMP(status))
+				fprintf(stderr, "+++ killed by %s (core dumped) +++\n",
+					get_signal_name(sig));
+			else
+				fprintf(stderr, "+++ killed by %s +++\n", get_signal_name(sig));
+			return (128 + sig);
 		}
 
 		if (WIFSTOPPED(status))
@@ -108,7 +112,7 @@ int	run_tracer(pid_t child_pid, int argc, char **argv, char **envp)
 			{
 				memset(&si, 0, sizeof(si));
 				if (ptrace(PTRACE_GETSIGINFO, child_pid, 0, &si) != -1)
-					print_signal(&si);
+					print_signal(&t, &si);
 			}
 			else if (sig == SIGSTOP)
 				sig = 0;
