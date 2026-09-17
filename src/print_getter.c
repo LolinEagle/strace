@@ -70,9 +70,18 @@ const char	*get_si_codes(int si_code, int si_signo)
 	[SEGV_MTEAERR] = "SEGV_MTEAERR",	// Asynchronous ARM MTE error
 	[SEGV_MTESERR] = "SEGV_MTESERR",	// Synchronous ARM MTE exception
 	};
+	static const char *const	sigcld[7] = {
+	[CLD_EXITED] = "CLD_EXITED",
+	[CLD_KILLED] = "CLD_KILLED",
+	[CLD_DUMPED] = "CLD_DUMPED",
+	[CLD_TRAPPED] = "CLD_TRAPPED",
+	[CLD_STOPPED] = "CLD_STOPPED",
+	[CLD_CONTINUED] = "CLD_CONTINUED",
+	};
 	static char					str[4];
 
-	if (si_signo == SIGINT || si_signo == SIGALRM || si_signo == SIGTERM)
+	if (si_signo == SIGINT || si_signo == SIGALRM || si_signo == SIGTERM
+		|| si_signo == SIGWINCH)
 	{
 		if (si_code == 0)
 			return ("SI_USER");// sent by kill, sigsend, raise
@@ -97,13 +106,18 @@ const char	*get_si_codes(int si_code, int si_signo)
 	}
 	else if (si_signo == SIGFPE)
 	{
-		if (si_code > 0 && si_code < 10 && sigfpe[si_code] != NULL)
+		if (si_code > 0 && si_code < 16 && sigfpe[si_code] != NULL)
 			return (sigfpe[si_code]);
 	}
 	else if (si_signo == SIGSEGV)
 	{
 		if (si_code > 0 && si_code < 10 && sigsegv[si_code] != NULL)
 			return (sigsegv[si_code]);
+	}
+	else if (si_signo == SIGCHLD)
+	{
+		if (si_code > 0 && si_code < 7 && sigsegv[si_code] != NULL)
+			return (sigcld[si_code]);
 	}
 	sprintf(str, "%d", si_code);
 	return (str);

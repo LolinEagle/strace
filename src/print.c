@@ -112,8 +112,6 @@ void	print_syscall_entry(t_tracer *t)
 		fprintf(stderr, CYAN " /* %i vars */", i);
 	}
 
-	// Close and flush
-	fprintf(stderr, RESET ")");
 	fflush(stderr);
 }
 
@@ -263,7 +261,11 @@ void	print_syscall_exit(t_tracer *t)
 	else
 		ret = (long)(int32_t)t->regs32.eax;
 
-	if (ret == -514)
+	fprintf(stderr, RESET ")");
+	if (ret == -516)
+		fprintf(stderr, " = " GREEN "? " RED
+			"ERESTART_RESTARTBLOCK (Interrupted by signal)\n" RESET);
+	else if (ret == -514)
 		fprintf(stderr, " = " GREEN "? " RED
 			"ERESTARTNOHAND (To be restarted if no handler)\n" RESET);
 	else if (ret <= -1 && ret >= -133)
@@ -332,10 +334,18 @@ void	print_signal(t_tracer *t, siginfo_t *si)
 		else
 			fprintf(stderr, ", si_addr=" MAGENTA "%p" RESET, si->si_addr);
 	}
-	else if (si->si_signo == SIGINT || si->si_signo == SIGTERM)
+	else if (si->si_signo == SIGINT || si->si_signo == SIGTERM
+		|| si->si_signo == SIGWINCH)
 	{
 		fprintf(stderr, ", si_pid=" MAGENTA "%i" RESET ", si_uid=" MAGENTA
 			"1000" RESET, t->child_pid);
+	}
+	else if (si->si_signo == SIGCHLD)
+	{
+		fprintf(stderr, ", si_pid=" MAGENTA "%i" RESET ", si_uid=" MAGENTA
+			"1000" RESET ", si_status=" MAGENTA "%i" RESET ", si_utime=" MAGENTA
+			"0" RESET ", si_stime=" MAGENTA "0" RESET, t->child_pid,
+			si->si_status);
 	}
 	fprintf(stderr, "} ---\n");
 	fflush(stderr);

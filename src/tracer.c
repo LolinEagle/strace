@@ -70,7 +70,7 @@ int	run_tracer(pid_t child_pid, int argc, char **argv, char **envp)
 		if (WIFEXITED(status))
 		{
 			if (t.in_syscall)
-				fprintf(stderr, " = ?\n");
+				fprintf(stderr, RESET ") = ?\n");
 			fprintf(stderr, "+++ exited with %d +++\n", WEXITSTATUS(status));
 			return (WEXITSTATUS(status));
 		}
