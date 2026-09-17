@@ -1,4 +1,4 @@
-#include "ft_strace.h"
+#include "strace.h"
 
 char	*read_string(
 	pid_t child_pid, unsigned long addr, char *dest_buf, size_t max_len)

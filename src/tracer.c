@@ -1,4 +1,4 @@
-#include "ft_strace.h"
+#include "strace.h"
 
 static int	get_registers(t_tracer *t)
 {
@@ -38,7 +38,7 @@ int	run_tracer(pid_t child_pid, int argc, char **argv, char **envp)
 	// Wait for child process to stop on initial SIGSTOP
 	if (waitpid(child_pid, &status, WUNTRACED) == -1)
 	{
-		perror("ft_strace: waitpid");
+		perror("strace: waitpid");
 		return (1);
 	}
 
@@ -46,14 +46,14 @@ int	run_tracer(pid_t child_pid, int argc, char **argv, char **envp)
 	if (ptrace(PTRACE_SETOPTIONS, child_pid, 0, (void *)(PTRACE_O_TRACESYSGOOD))
 			== -1)
 	{
-		perror("ft_strace: ptrace(PTRACE_SETOPTIONS)");
+		perror("strace: ptrace(PTRACE_SETOPTIONS)");
 		return (1);
 	}
 
 	// Step until the first system call
 	if (ptrace(PTRACE_SYSCALL, child_pid, 0, 0) == -1)
 	{
-		perror("ft_strace: ptrace(PTRACE_SYSCALL)");
+		perror("strace: ptrace(PTRACE_SYSCALL)");
 		return (1);
 	}
 

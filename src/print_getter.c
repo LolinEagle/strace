@@ -1,4 +1,4 @@
-#include "ft_strace.h"
+#include "strace.h"
 
 const char	*get_signal_name(int signo)
 {

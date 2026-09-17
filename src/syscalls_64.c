@@ -1,4 +1,4 @@
-#include "ft_strace.h"
+#include "strace.h"
 
 // Linux x86_64 standard syscall table snippet
 const t_syscall_entry	g_syscalls_64[] = {

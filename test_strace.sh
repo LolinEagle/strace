@@ -7,7 +7,7 @@ YELLOW="\033[0;33m"
 CYAN="\033[0;36m"
 RESET="\033[0m"
 
-FT_STRACE="./ft_strace"
+MY_STRACE="./ft_strace"
 REAL_STRACE="strace"
 TMP_DIR="./strace_tests"
 PASSED=0
@@ -20,8 +20,8 @@ mkdir -p "$TMP_DIR"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 make -B > /dev/null
-if [ ! -f "$FT_STRACE" ]; then
-	echo -e "${RED}Error: ft_strace binary not found.${RESET}"
+if [ ! -f "$MY_STRACE" ]; then
+	echo -e "${RED}Error: binary not found.${RESET}"
 	exit 1
 fi
 
@@ -71,26 +71,24 @@ run_test(){
 	((TEST_NBR++))
 	mkdir -p "$TMP_DIR/$TEST_NBR"
 
-	local ft_out="$TMP_DIR/$TEST_NBR/ft_out.txt"
-	local ft_err="$TMP_DIR/$TEST_NBR/ft_err.txt"
+	local my_out="$TMP_DIR/$TEST_NBR/my_out.txt"
+	local my_err="$TMP_DIR/$TEST_NBR/my_err.txt"
 	local real_out="$TMP_DIR/$TEST_NBR/real_out.txt"
 	local real_err="$TMP_DIR/$TEST_NBR/real_err.txt"
 
-	# Run ft_strace
-	"$FT_STRACE" "${cmd[@]}" > "$ft_out" 2> "$ft_err"
-	local ft_ret=$?
-
-	# Run real strace
+	# Run
+	"$MY_STRACE" "${cmd[@]}" > "$my_out" 2> "$my_err"
+	local my_ret=$?
 	"$REAL_STRACE" "${cmd[@]}" > "$real_out" 2> "$real_err"
 	local real_ret=$?
 
 	# Extract normalized traces
-	normalize_trace "$ft_err" > "$TMP_DIR/$TEST_NBR/ft_norm.txt"
+	normalize_trace "$my_err" > "$TMP_DIR/$TEST_NBR/my_norm.txt"
 	normalize_trace "$real_err" > "$TMP_DIR/$TEST_NBR/real_norm.txt"
 
 	# Compare exit status line
-	local ft_exit_summary
-	ft_exit_summary=$(grep -E '^\+\+\+ (exited|killed)' "$ft_err" | tail -n1)
+	local my_exit_summary
+	my_exit_summary=$(grep -E '^\+\+\+ (exited|killed)' "$my_err" | tail -n1)
 	local real_exit_summary
 	real_exit_summary=$(grep -E '^\+\+\+ (exited|killed)' "$real_err" | tail -n1)
 
@@ -99,22 +97,22 @@ run_test(){
 	local test_fail=0
 	
 	# 1. Compare return status of the command itself
-	if [ "$ft_ret" -ne "$real_ret" ]; then
+	if [ "$my_ret" -ne "$real_ret" ]; then
 		test_fail=1
 	fi
 
 	# 2. Check exit summaries
-	if [ "$ft_exit_summary" != "$real_exit_summary" ]; then
+	if [ "$my_exit_summary" != "$real_exit_summary" ]; then
 		test_fail=1
 	fi
 
-	# 3. Check that ft_strace captured syscalls (non-empty output)
-	if [ ! -s "$TMP_DIR/$TEST_NBR/ft_norm.txt" ]; then
+	# 3. Check that captured syscalls (non-empty output)
+	if [ ! -s "$TMP_DIR/$TEST_NBR/my_norm.txt" ]; then
 		test_fail=1
 	fi
 
 	# Compare the normalized outputs directly
-	if diff -u0 "$TMP_DIR/$TEST_NBR/real_norm.txt" "$TMP_DIR/$TEST_NBR/ft_norm.txt" > "$TMP_DIR/$TEST_NBR/diff.txt"; then
+	if diff -u0 "$TMP_DIR/$TEST_NBR/real_norm.txt" "$TMP_DIR/$TEST_NBR/my_norm.txt" > "$TMP_DIR/$TEST_NBR/diff.txt"; then
 		echo -e "${GREEN}[DIFF] No diff found${RESET}"
 	else
 		echo -e "${YELLOW}[DIFF] Diff found :${RESET}"
@@ -128,9 +126,9 @@ run_test(){
 	else
 		echo -e "${RED}[FAIL]${RESET}"
 		((FAILED++))
-		echo -e "${YELLOW}--- ft_strace output snippet ---${RESET}"
-		tail -n 3 "$ft_err"
-		echo -e "${YELLOW}--- real strace output snippet ---${RESET}"
+		echo -e "${YELLOW}--- output snippet ---${RESET}"
+		tail -n 3 "$my_err"
+		echo -e "${YELLOW}--- real output snippet ---${RESET}"
 		tail -n 3 "$real_err"
 		echo "----------------------------------------"
 	fi

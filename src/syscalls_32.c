@@ -1,4 +1,4 @@
-#include "ft_strace.h"
+#include "strace.h"
 
 // Linux x86 (i386) syscall table snippet
 const t_syscall_entry	g_syscalls_32[] = {

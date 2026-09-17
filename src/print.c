@@ -1,4 +1,4 @@
-#include "ft_strace.h"
+#include "strace.h"
 
 char	*format(int i)
 {

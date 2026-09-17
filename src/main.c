@@ -1,4 +1,4 @@
-#include "ft_strace.h"
+#include "strace.h"
 
 static volatile sig_atomic_t	g_interrupted = 0;
 
@@ -74,7 +74,7 @@ int	main(int argc, char **argv, char **envp)
 
 	if (argc < 2)
 	{
-		fprintf(stderr, "ft_strace: must have PROG [ARGS]\n");
+		fprintf(stderr, "strace: must have PROG [ARGS]\n");
 		return (1);
 	}
 	if (validate_command(argv[1], 0) != 0)
@@ -86,14 +86,14 @@ int	main(int argc, char **argv, char **envp)
 
 	if (pipe(sync_pipe) == -1)
 	{
-		perror("ft_strace: pipe");
+		perror("strace: pipe");
 		return (1);
 	}
 
 	pid = fork();
 	if (pid < 0)
 	{
-		perror("ft_strace: fork");
+		perror("strace: fork");
 		return (1);
 	}
 
@@ -124,7 +124,7 @@ int	main(int argc, char **argv, char **envp)
 	// Attach to child using PTRACE_SEIZE
 	if (ptrace(PTRACE_SEIZE, pid, 0, (void *)PTRACE_O_TRACESYSGOOD) == -1)
 	{
-		perror("ft_strace: ptrace(PTRACE_SEIZE)");
+		perror("strace: ptrace(PTRACE_SEIZE)");
 		close(sync_pipe[1]);
 		kill(pid, SIGKILL);
 		return (1);
@@ -133,7 +133,7 @@ int	main(int argc, char **argv, char **envp)
 	// Signal child to proceed to SIGSTOP
 	if (write(sync_pipe[1], "GO", 1) != 1)
 	{
-		perror("ft_strace: write");
+		perror("strace: write");
 		close(sync_pipe[1]);
 		kill(pid, SIGKILL);
 		return (1);
