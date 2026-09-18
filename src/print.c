@@ -338,13 +338,13 @@ void	print_signal(t_tracer *t, siginfo_t *si)
 		|| si->si_signo == SIGWINCH)
 	{
 		fprintf(stderr, ", si_pid=" MAGENTA "%i" RESET ", si_uid=" MAGENTA
-			"1000" RESET, t->child_pid);
+			"%i" RESET, t->child_pid, si->si_uid);
 	}
 	else if (si->si_signo == SIGCHLD)
 	{
 		fprintf(stderr, ", si_pid=" MAGENTA "%i" RESET ", si_uid=" MAGENTA
-			"1000" RESET ", si_status=" MAGENTA "%i" RESET ", si_utime=" MAGENTA
-			"0" RESET ", si_stime=" MAGENTA "0" RESET, t->child_pid,
+			"%i" RESET ", si_status=" MAGENTA "%i" RESET ", si_utime=" MAGENTA
+			"0" RESET ", si_stime=" MAGENTA "0" RESET, t->child_pid, si->si_uid,
 			si->si_status);
 	}
 	fprintf(stderr, "} ---\n");
