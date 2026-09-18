@@ -257,9 +257,27 @@ void	print_syscall_exit(t_tracer *t)
 	long						sys_no;
 
 	if (t->arch == ARCH_64)
+	{
 		ret = (long)t->regs64.rax;
+		sys_no = t->regs64.orig_rax;
+		t->orig_syscall = sys_no;
+		if (sys_no >= 0 && (size_t)sys_no < g_syscalls_64_count
+			&& g_syscalls_64[sys_no].name)
+		{
+			name = g_syscalls_64[sys_no].name;
+		}
+	}
 	else
+	{
 		ret = (long)(int32_t)t->regs32.eax;
+		sys_no = t->regs32.orig_eax;
+		t->orig_syscall = sys_no;
+		if (sys_no >= 0 && (size_t)sys_no < g_syscalls_32_count
+			&& g_syscalls_32[sys_no].name)
+		{
+			name = g_syscalls_32[sys_no].name;
+		}
+	}
 
 	fprintf(stderr, RESET ")");
 	if (ret == -516)
@@ -274,25 +292,6 @@ void	print_syscall_exit(t_tracer *t)
 		fprintf(stderr, " = " GREEN "-1 " RED "(errno %ld)\n" RESET, -ret);
 	else if (ret == 0)
 	{
-		// Get syscall name
-		if (t->arch == ARCH_64)
-		{
-			sys_no = t->regs64.orig_rax;
-			t->orig_syscall = sys_no;
-			if (sys_no >= 0 && (size_t)sys_no < g_syscalls_64_count
-				&& g_syscalls_64[sys_no].name)
-				name = g_syscalls_64[sys_no].name;
-		}
-		else
-		{
-			sys_no = t->regs32.orig_eax;
-			t->orig_syscall = sys_no;
-			if (sys_no >= 0 && (size_t)sys_no < g_syscalls_32_count
-				&& g_syscalls_32[sys_no].name)
-				name = g_syscalls_32[sys_no].name;
-		}
-
-		// Print return
 		fprintf(stderr, " = " GREEN "0");
 		if (name && strcmp(name, "execve") == 0 && t->arch != ARCH_64)
 			fprintf(stderr, "\n[ Process PID=%i runs in 32 bit mode. ]\n" RESET,
