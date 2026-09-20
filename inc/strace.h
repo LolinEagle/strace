@@ -100,5 +100,6 @@ void		print_syscall_exit(t_tracer *t);
 void		print_signal(t_tracer *t, siginfo_t *si);
 
 // Read string
-void		print_syscall_entry_string(pid_t child_pid, unsigned long args);
+void		print_syscall_entry_string(pid_t child_pid, unsigned long args,
+				size_t count);
 void		print_syscall_entry_argv(t_tracer *t);

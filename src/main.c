@@ -52,8 +52,7 @@ int	validate_command(const char *cmd, int found)
 	if (!found)
 	{
 		// When not found anywhere in PATH, stat() fails with ENOENT
-		fprintf(stderr, "strace: Cannot stat '%s': %s\n", cmd,
-			strerror(ENOENT));
+		fprintf(stderr, "strace: Cannot find executable '%s'\n", cmd);
 		return (-1);
 	}
 	return (0);

@@ -27,7 +27,7 @@ char	*read_string(
 	return (dest_buf);
 }
 
-void	print_escaped_string(FILE *stream, const char *str)
+void	print_escaped_string(FILE *stream, const char *str, size_t count)
 {
 	size_t			i;
 	unsigned char	c;
@@ -36,7 +36,7 @@ void	print_escaped_string(FILE *stream, const char *str)
 		return ;
 
 	i = 0;
-	while (str[i] != '\0')
+	while (str[i] != '\0' && count-- > 0)
 	{
 		c = (unsigned char)str[i];
 		if (c == '\n')
@@ -68,7 +68,8 @@ void	print_escaped_string(FILE *stream, const char *str)
 	}
 }
 
-void	print_syscall_entry_string(pid_t child_pid, unsigned long args)
+void	print_syscall_entry_string(pid_t child_pid, unsigned long args,
+	size_t count)
 {
 	char	str_buf[256];
 	char	*res;
@@ -79,7 +80,7 @@ void	print_syscall_entry_string(pid_t child_pid, unsigned long args)
 	else if (res != NULL)
 	{
 		fprintf(stderr, "\"");
-		print_escaped_string(stderr, res);
+		print_escaped_string(stderr, res, count);
 		fprintf(stderr, "\"");
 	}
 	else

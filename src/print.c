@@ -93,7 +93,12 @@ void	print_syscall_entry(t_tracer *t)
 				fprintf(stderr, "0x%lx", (unsigned long)args[i]);
 		}
 		else if (e.args_type[i] == STR)
-			print_syscall_entry_string(t->child_pid, args[i]);
+		{
+			if (name && strcmp(name, "read") == 0)
+				print_syscall_entry_string(t->child_pid, args[i], args[i + 1]);
+			else
+				print_syscall_entry_string(t->child_pid, args[i], -1);
+		}
 		else if (e.args_type[i] == OCTAL)
 			fprintf(stderr, "0%lo", (unsigned long)args[i]);
 		else if (e.args_type[i] == ARGV)
@@ -254,6 +259,7 @@ void	print_syscall_exit(t_tracer *t)
 	[133] = "EHWPOISON (Memory page has hardware error)\n"
 	};
 	const char					*name = NULL;
+	t_arg_type					ret_type;
 	long						sys_no;
 
 	if (t->arch == ARCH_64)
@@ -265,6 +271,7 @@ void	print_syscall_exit(t_tracer *t)
 			&& g_syscalls_64[sys_no].name)
 		{
 			name = g_syscalls_64[sys_no].name;
+			ret_type = g_syscalls_64[sys_no].ret_type;
 		}
 	}
 	else
@@ -276,6 +283,7 @@ void	print_syscall_exit(t_tracer *t)
 			&& g_syscalls_32[sys_no].name)
 		{
 			name = g_syscalls_32[sys_no].name;
+			ret_type = g_syscalls_32[sys_no].ret_type;
 		}
 	}
 
@@ -305,15 +313,21 @@ void	print_syscall_exit(t_tracer *t)
 	}
 	else if (t->arch == ARCH_32)
 	{
-		if ((uint32_t)ret > 1048576)
+		if (ret_type == PTR)
 			fprintf(stderr, " = " GREEN "0x%x\n" RESET, (uint32_t)ret);
+		else if (name && strcmp(name, "fcntl") == 0 && ret == 524290)
+			fprintf(stderr, " = " GREEN "0x%x (flags O_RDWR|O_CLOEXEC)\n"
+				RESET, (uint32_t)ret);
 		else
 			fprintf(stderr, " = " GREEN "%u\n" RESET, (uint32_t)ret);
 	}
 	else
 	{
-		if ((unsigned long)ret > 1048576)
+		if (ret_type == PTR)
 			fprintf(stderr, " = " GREEN "0x%lx\n" RESET, (unsigned long)ret);
+		else if (name && strcmp(name, "fcntl") == 0 && ret == 524290)
+			fprintf(stderr, " = " GREEN "0x%lx (flags O_RDWR|O_CLOEXEC)\n"
+				RESET, (unsigned long)ret);
 		else
 			fprintf(stderr, " = " GREEN "%ld\n" RESET, ret);
 	}
