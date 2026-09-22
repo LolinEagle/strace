@@ -75,16 +75,23 @@ void	print_syscall_entry(t_tracer *t)
 		fprintf(stderr, YELLOW "%s" RESET "(", name);
 	else
 		fprintf(stderr, YELLOW "sys_%ld" RESET "(", t->orig_syscall);
+
+	// Argument
 	i = 0;
 	while (i < e.nargs)
 	{
 		fprintf(stderr, RESET "%s" MAGENTA, format(i));
 		if (e.args_type[i] == INT)
-			fprintf(stderr, "%ld", (long)args[i]);
+			fprintf(stderr, "%i", (int)args[i]);
 		else if (e.args_type[i] == UINT)
 			fprintf(stderr, "%lu", (unsigned long)args[i]);
 		else if (e.args_type[i] == HEX)
-			fprintf(stderr, "0x%lx", (unsigned long)args[i]);
+		{
+			if (args[i] == 0)
+				fprintf(stderr, "0");
+			else
+				fprintf(stderr, "0x%lx", (unsigned long)args[i]);
+		}
 		else if (e.args_type[i] == PTR)
 		{
 			if (args[i] == 0)
@@ -103,6 +110,10 @@ void	print_syscall_entry(t_tracer *t)
 			fprintf(stderr, "0%lo", (unsigned long)args[i]);
 		else if (e.args_type[i] == ARGV)
 			print_syscall_entry_argv(t);
+		else if (e.args_type[i] == PROT)
+			decode_mmap_prot(args[i]);
+		else if (e.args_type[i] == FLAGS)
+			decode_mmap_flags(args[i]);
 		else
 			fprintf(stderr, "0x%lx", args[i]);
 		i++;
@@ -117,6 +128,7 @@ void	print_syscall_entry(t_tracer *t)
 		fprintf(stderr, CYAN " /* %i vars */", i);
 	}
 
+	// Flush
 	fflush(stderr);
 }
 

@@ -12,12 +12,13 @@
 #include <sys/ptrace.h>
 #include <sys/user.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 #include <limits.h>
 #include <sys/uio.h>
 #include <elf.h>
 #include <ctype.h>
 
-#include "colors_ansi.h"
+#include "colors_none.h"
 
 typedef enum s_arch
 {
@@ -34,7 +35,9 @@ typedef enum s_arg_type
 	PTR,	// Generic pointer: 0x7ffd1234 or NULL
 	STR,	// NUL-terminated string: "Hello\n"
 	OCTAL,	// Octal
-	ARGV,
+	ARGV,	// Use in execve to display argv
+	PROT,	// Mmap
+	FLAGS,	// Mmap
 	ARG_TYPE_NBR
 }	t_arg_type;
 
@@ -103,3 +106,7 @@ void		print_signal(t_tracer *t, siginfo_t *si);
 void		print_syscall_entry_string(pid_t child_pid, unsigned long args,
 				size_t count);
 void		print_syscall_entry_argv(t_tracer *t);
+
+// Mmap
+void		decode_mmap_prot(int prot);
+void		decode_mmap_flags(int flags);

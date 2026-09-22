@@ -1,5 +1,6 @@
 NAME		=	ft_strace
 SRC			=	main.c \
+				decode_mmap.c \
 				print_getter.c \
 				print.c \
 				read_string.c \
