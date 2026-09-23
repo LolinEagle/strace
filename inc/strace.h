@@ -17,6 +17,8 @@
 #include <sys/uio.h>
 #include <elf.h>
 #include <ctype.h>
+#include <fcntl.h>
+#include <asm/prctl.h>
 
 #include "colors_none.h"
 
@@ -29,15 +31,22 @@ typedef enum s_arch
 typedef enum s_arg_type
 {
 	NONE,
-	INT,	// Decimal signed int: 1, -1
-	UINT,	// Decimal unsigned int / size_t: 6
-	HEX,	// Hexadecimal (flags/masks): 0x77
-	PTR,	// Generic pointer: 0x7ffd1234 or NULL
-	STR,	// NUL-terminated string: "Hello\n"
-	OCTAL,	// Octal
-	ARGV,	// Use in execve to display argv
-	PROT,	// Mmap
-	FLAGS,	// Mmap
+	INT,			// Decimal signed int: 1, -1
+	UINT,			// Decimal unsigned int / size_t: 6
+	HEX,			// Hexadecimal (flags/masks): 0x77
+	PTR,			// Generic pointer: 0x7ffd1234 or NULL
+	STR,			// NUL-terminated string: "Hello\n"
+	OCTAL,			// Octal
+
+	ARGV,			// execve
+	MODE,			// access
+	OP,				// arch_prctl
+	PROT,			// mmap
+	MMAP_FLAGS,		// mmap
+	DIRFD,			// openat
+	OPENAT_FLAGS,	// openat
+
+	STRUCT,			// Generic structures
 	ARG_TYPE_NBR
 }	t_arg_type;
 
@@ -90,6 +99,15 @@ extern const size_t				g_syscalls_64_count;
 extern const t_syscall_entry	g_syscalls_32[];
 extern const size_t				g_syscalls_32_count;
 
+// Decode
+void		decode_access_mode(int mode);
+void		decode_arch_prctl_op(int op);
+void		print_flag(const char *str, bool *first);
+void		decode_mmap_prot(int prot);
+void		decode_mmap_flags(int flags);
+void		decode_openat_dirfd(int dirfd);
+void		decode_openat_flags(int flags);
+
 // Prototypes
 int			run_tracer(pid_t child_pid, int argc, char **argv, char **envp);
 
@@ -106,7 +124,3 @@ void		print_signal(t_tracer *t, siginfo_t *si);
 void		print_syscall_entry_string(pid_t child_pid, unsigned long args,
 				size_t count);
 void		print_syscall_entry_argv(t_tracer *t);
-
-// Mmap
-void		decode_mmap_prot(int prot);
-void		decode_mmap_flags(int flags);

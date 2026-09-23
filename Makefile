@@ -1,6 +1,9 @@
 NAME		=	ft_strace
 SRC			=	main.c \
-				decode_mmap.c \
+				decode/access.c \
+				decode/arch_prctl.c \
+				decode/mmap.c \
+				decode/openat.c \
 				print_getter.c \
 				print.c \
 				read_string.c \
@@ -43,7 +46,7 @@ $(OBJ_PATH)%.o:$(SRC_PATH)%.c | $(OBJ_DIRS)
 	$(CC) $(FLAGS) $(INC) -c $< -o $@
 
 $(OBJ_DIRS):
-	mkdir -p $(OBJ_DIRS)
+	mkdir -p $(OBJ_DIRS)/decode
 
 $(NAME):$(OBJ)
 	$(CC) $(FLAGS) $(INC) $(OBJ) -o $(NAME)

@@ -29,14 +29,21 @@ char	*read_string(
 
 void	print_escaped_string(FILE *stream, const char *str, size_t count)
 {
+	size_t			count_copy;
 	size_t			i;
 	unsigned char	c;
 
 	if (!str)
 		return ;
 
+	fputs("\"", stream);
+	if (count > 34)
+		count_copy = 34;
+	else
+		count_copy = count;
 	i = 0;
-	while (str[i] != '\0' && count-- > 0)
+	while ((count == ULONG_MAX && str[i] != '\0')
+		|| (count != ULONG_MAX && count_copy-- > 0))
 	{
 		c = (unsigned char)str[i];
 		if (c == '\n')
@@ -57,6 +64,8 @@ void	print_escaped_string(FILE *stream, const char *str, size_t count)
 			fputs("\\\\", stream);
 		else if (c == '\"')
 			fputs("\\\"", stream);
+		else if (c == '\0')
+			fputs("\\0", stream);
 		else
 		{
 			if (isprint(c))
@@ -66,6 +75,10 @@ void	print_escaped_string(FILE *stream, const char *str, size_t count)
 		}
 		i++;
 	}
+	if (count > 34 && count != ULONG_MAX)
+		fputs("\"...", stream);
+	else
+		fputs("\"", stream);
 }
 
 void	print_syscall_entry_string(pid_t child_pid, unsigned long args,
@@ -78,11 +91,7 @@ void	print_syscall_entry_string(pid_t child_pid, unsigned long args,
 	if (args == 0)
 		fprintf(stderr, "NULL");
 	else if (res != NULL)
-	{
-		fprintf(stderr, "\"");
 		print_escaped_string(stderr, res, count);
-		fprintf(stderr, "\"");
-	}
 	else
 		fprintf(stderr, "0x%lx", (unsigned long)args);
 }

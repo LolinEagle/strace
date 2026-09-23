@@ -101,10 +101,11 @@ void	print_syscall_entry(t_tracer *t)
 		}
 		else if (e.args_type[i] == STR)
 		{
-			if (name && strcmp(name, "read") == 0)
+			if (name && (strcmp(name, "read") == 0
+					|| strcmp(name, "pread64") == 0))
 				print_syscall_entry_string(t->child_pid, args[i], args[i + 1]);
 			else
-				print_syscall_entry_string(t->child_pid, args[i], -1);
+				print_syscall_entry_string(t->child_pid, args[i], ULONG_MAX);
 		}
 		else if (e.args_type[i] == OCTAL)
 			fprintf(stderr, "0%lo", (unsigned long)args[i]);
@@ -112,8 +113,18 @@ void	print_syscall_entry(t_tracer *t)
 			print_syscall_entry_argv(t);
 		else if (e.args_type[i] == PROT)
 			decode_mmap_prot(args[i]);
-		else if (e.args_type[i] == FLAGS)
+		else if (e.args_type[i] == MMAP_FLAGS)
 			decode_mmap_flags(args[i]);
+		else if (e.args_type[i] == MODE)
+			decode_access_mode(args[i]);
+		else if (e.args_type[i] == DIRFD)
+			decode_openat_dirfd(args[i]);
+		else if (e.args_type[i] == STRUCT)
+			fprintf(stderr, "{0x%lx}", (unsigned long)args[i]);
+		else if (e.args_type[i] == OPENAT_FLAGS)
+			decode_openat_flags(args[i]);
+		else if (e.args_type[i] == OP)
+			decode_arch_prctl_op(args[i]);
 		else
 			fprintf(stderr, "0x%lx", args[i]);
 		i++;
