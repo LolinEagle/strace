@@ -58,7 +58,7 @@ normalize_trace(){
 		-e 's/\(.*\)([[:space:]]*=)/\(\)\1/g' \
 		-e 's/\)[[:space:]]*=/) =/g' \
 		-e 's/0x[0-9a-fA-F]+/0x[ADDR]/g' \
-		-e 's/^(set_tid_address|gettid|getpid|getppid|clone|wait4|epoll_pwait2)\(\)[[:space:]]*=[[:space:]]*[0-9]+/\1() = [TID]/g' \
+		-e 's/^(set_tid_address|gettid|getpid|getppid|clone|wait4|epoll_pwait2)\(([^)]*)\)[[:space:]]*=[[:space:]]*[0-9]+/\1(\2) = [TID]/g' \
 		-e 's/(PID|si_pid)=[0-9]+/si_pid=[PID]/g' \
 		"$input"
 }

@@ -125,6 +125,10 @@ void	print_syscall_entry(t_tracer *t)
 			decode_openat_flags(args[i]);
 		else if (e.args_type[i] == OP)
 			decode_arch_prctl_op(args[i]);
+		else if (e.args_type[i] == RESOURCE)
+			decode_prlimit64_resource(args[i]);
+		else if (e.args_type[i] == GETRANDOM_FLAGS)
+			decode_getrandom_flags(args[i]);
 		else
 			fprintf(stderr, "0x%lx", args[i]);
 		i++;

@@ -1,0 +1,25 @@
+#include "strace.h"
+
+void	decode_prlimit64_resource(int resource)
+{
+	static const char *const	resources[16] = {
+	[RLIMIT_AS] = "RLIMIT_AS",
+	[RLIMIT_CORE] = "RLIMIT_CORE",
+	[RLIMIT_CPU] = "RLIMIT_CPU",
+	[RLIMIT_DATA] = "RLIMIT_DATA",
+	[RLIMIT_FSIZE] = "RLIMIT_FSIZE",
+	[RLIMIT_LOCKS] = "RLIMIT_LOCKS",
+	[RLIMIT_MEMLOCK] = "RLIMIT_MEMLOCK",
+	[RLIMIT_MSGQUEUE] = "RLIMIT_MSGQUEUE",
+	[RLIMIT_NICE] = "RLIMIT_NICE",
+	[RLIMIT_NOFILE] = "RLIMIT_NOFILE",
+	[RLIMIT_NPROC] = "RLIMIT_NPROC",
+	[RLIMIT_RSS] = "RLIMIT_RSS",
+	[RLIMIT_RTPRIO] = "RLIMIT_RTPRIO",
+	[RLIMIT_RTTIME] = "RLIMIT_RTTIME",
+	[RLIMIT_SIGPENDING] = "RLIMIT_SIGPENDING",
+	[RLIMIT_STACK] = "RLIMIT_STACK",
+	};
+
+	fprintf(stderr, "%s", resources[resource]);
+}

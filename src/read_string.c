@@ -29,6 +29,7 @@ char	*read_string(
 
 void	print_escaped_string(FILE *stream, const char *str, size_t count)
 {
+	static size_t	count_max = 34;
 	size_t			count_copy;
 	size_t			i;
 	unsigned char	c;
@@ -37,8 +38,8 @@ void	print_escaped_string(FILE *stream, const char *str, size_t count)
 		return ;
 
 	fputs("\"", stream);
-	if (count > 34)
-		count_copy = 34;
+	if (count > count_max)
+		count_copy = count_max;
 	else
 		count_copy = count;
 	i = 0;
@@ -75,7 +76,7 @@ void	print_escaped_string(FILE *stream, const char *str, size_t count)
 		}
 		i++;
 	}
-	if (count > 34 && count != ULONG_MAX)
+	if (count > count_max && count != ULONG_MAX)
 		fputs("\"...", stream);
 	else
 		fputs("\"", stream);

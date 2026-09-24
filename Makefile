@@ -2,8 +2,10 @@ NAME		=	ft_strace
 SRC			=	main.c \
 				decode/access.c \
 				decode/arch_prctl.c \
+				decode/getrandom.c \
 				decode/mmap.c \
 				decode/openat.c \
+				decode/prlimit64.c \
 				print_getter.c \
 				print.c \
 				read_string.c \

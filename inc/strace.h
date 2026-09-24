@@ -13,6 +13,8 @@
 #include <sys/user.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <sys/resource.h>
+#include <sys/random.h>
 #include <limits.h>
 #include <sys/uio.h>
 #include <elf.h>
@@ -45,6 +47,8 @@ typedef enum s_arg_type
 	MMAP_FLAGS,		// mmap
 	DIRFD,			// openat
 	OPENAT_FLAGS,	// openat
+	RESOURCE,		// prlimit64
+	GETRANDOM_FLAGS,// getrandom
 
 	STRUCT,			// Generic structures
 	ARG_TYPE_NBR
@@ -102,11 +106,13 @@ extern const size_t				g_syscalls_32_count;
 // Decode
 void		decode_access_mode(int mode);
 void		decode_arch_prctl_op(int op);
+void		decode_getrandom_flags(int flags);
 void		print_flag(const char *str, bool *first);
 void		decode_mmap_prot(int prot);
 void		decode_mmap_flags(int flags);
 void		decode_openat_dirfd(int dirfd);
 void		decode_openat_flags(int flags);
+void		decode_prlimit64_resource(int resource);
 
 // Prototypes
 int			run_tracer(pid_t child_pid, int argc, char **argv, char **envp);
