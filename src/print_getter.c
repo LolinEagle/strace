@@ -122,3 +122,65 @@ const char	*get_si_codes(int si_code, int si_signo)
 	sprintf(str, "%d", si_code);
 	return (str);
 }
+
+void	get_syscall_entry(t_tracer *t, t_syscall_entry *e, size_t *args)
+{
+	long	sys_no;
+	int		i;
+
+	e->nargs = 6;
+	if (t->arch == ARCH_64)
+	{
+		sys_no = t->regs64.orig_rax;
+		t->orig_syscall = sys_no;
+		if (sys_no >= 0 && (size_t)sys_no < g_syscalls_64_count
+			&& g_syscalls_64[sys_no].name)
+		{
+			e->name = g_syscalls_64[sys_no].name;
+			e->nargs = g_syscalls_64[sys_no].nargs;
+			e->ret_type = g_syscalls_64[sys_no].ret_type;
+			i = -1;
+			while (++i < e->nargs)
+				e->args_type[i] = g_syscalls_64[sys_no].args_type[i];
+		}
+		else
+		{
+			i = -1;
+			while (++i < 6)
+				e->args_type[i] = NONE;
+		}
+		args[0] = t->regs64.rdi;
+		args[1] = t->regs64.rsi;
+		args[2] = t->regs64.rdx;
+		args[3] = t->regs64.r10;
+		args[4] = t->regs64.r8;
+		args[5] = t->regs64.r9;
+	}
+	else
+	{
+		sys_no = t->regs32.orig_eax;
+		t->orig_syscall = sys_no;
+		if (sys_no >= 0 && (size_t)sys_no < g_syscalls_32_count
+			&& g_syscalls_32[sys_no].name)
+		{
+			e->name = g_syscalls_32[sys_no].name;
+			e->nargs = g_syscalls_32[sys_no].nargs;
+			e->ret_type = g_syscalls_32[sys_no].ret_type;
+			i = -1;
+			while (++i < e->nargs)
+				e->args_type[i] = g_syscalls_32[sys_no].args_type[i];
+		}
+		else
+		{
+			i = -1;
+			while (++i < 6)
+				e->args_type[i] = NONE;
+		}
+		args[0] = t->regs32.ebx;
+		args[1] = t->regs32.ecx;
+		args[2] = t->regs32.edx;
+		args[3] = t->regs32.esi;
+		args[4] = t->regs32.edi;
+		args[5] = t->regs32.ebp;
+	}
+}

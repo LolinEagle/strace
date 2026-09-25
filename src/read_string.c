@@ -1,7 +1,6 @@
 #include "strace.h"
 
-char	*read_string(
-	pid_t child_pid, unsigned long addr, char *dest_buf, size_t max_len)
+char	*read_string(pid_t pid, size_t addr, char *dest, size_t max_len)
 {
 	struct iovec	local;
 	struct iovec	remote;
@@ -11,7 +10,7 @@ char	*read_string(
 		return (NULL);
 
 	local = (struct iovec){
-		.iov_base = dest_buf,
+		.iov_base = dest,
 		.iov_len = max_len - 1
 	};
 	remote = (struct iovec){
@@ -19,17 +18,17 @@ char	*read_string(
 		.iov_len = max_len - 1
 	};
 
-	nread = process_vm_readv(child_pid, &local, 1, &remote, 1, 0);
+	nread = process_vm_readv(pid, &local, 1, &remote, 1, 0);
 	if (nread <= 0)
 		return (NULL);
 
-	dest_buf[nread] = '\0';
-	return (dest_buf);
+	dest[nread] = '\0';
+	return (dest);
 }
 
 void	print_escaped_string(FILE *stream, const char *str, size_t count)
 {
-	static size_t	count_max = 34;
+	static size_t	count_max = 32;
 	size_t			count_copy;
 	size_t			i;
 	unsigned char	c;
@@ -72,7 +71,7 @@ void	print_escaped_string(FILE *stream, const char *str, size_t count)
 			if (isprint(c))
 				fputc(c, stream);
 			else
-				fprintf(stream, "\\x%02x", c);
+				fprintf(stream, "\\%o", c);
 		}
 		i++;
 	}
@@ -82,8 +81,7 @@ void	print_escaped_string(FILE *stream, const char *str, size_t count)
 		fputs("\"", stream);
 }
 
-void	print_syscall_entry_string(pid_t child_pid, unsigned long args,
-	size_t count)
+void	print_syscall_entry_string(pid_t child_pid, size_t args, size_t count)
 {
 	char	str_buf[256];
 	char	*res;
@@ -94,7 +92,7 @@ void	print_syscall_entry_string(pid_t child_pid, unsigned long args,
 	else if (res != NULL)
 		print_escaped_string(stderr, res, count);
 	else
-		fprintf(stderr, "0x%lx", (unsigned long)args);
+		fprintf(stderr, "0x%lx", (size_t)args);
 }
 
 void	print_syscall_entry_argv(t_tracer *t)

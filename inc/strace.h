@@ -120,13 +120,13 @@ int			run_tracer(pid_t child_pid, int argc, char **argv, char **envp);
 // Print getter
 const char	*get_signal_name(int signo);
 const char	*get_si_codes(int si_code, int si_signo);
+void		get_syscall_entry(t_tracer *t, t_syscall_entry *e, size_t *args);
 
 // Print
-void		print_syscall_entry(t_tracer *t);
+void		print_syscall_entry(t_tracer *t, bool entry);
 void		print_syscall_exit(t_tracer *t);
 void		print_signal(t_tracer *t, siginfo_t *si);
 
 // Read string
-void		print_syscall_entry_string(pid_t child_pid, unsigned long args,
-				size_t count);
+void		print_syscall_entry_string(pid_t pid, size_t args, size_t count);
 void		print_syscall_entry_argv(t_tracer *t);

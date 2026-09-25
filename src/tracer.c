@@ -98,7 +98,7 @@ int	run_tracer(pid_t child_pid, int argc, char **argv, char **envp)
 
 				if (!t.in_syscall)
 				{
-					print_syscall_entry(&t);
+					print_syscall_entry(&t, true);
 					t.in_syscall = true;
 				}
 				else

@@ -8,71 +8,20 @@ char	*format(int i)
 		return ("");
 }
 
-void	print_syscall_entry(t_tracer *t)
+void	print_syscall_entry(t_tracer *t, bool entry)
 {
-	long			sys_no;
-	const char		*name = NULL;
 	t_syscall_entry	e;
-	unsigned long	args[6];
+	size_t			args[6];
 	int				i;
 
-	e.nargs = 6;
-	memset(args, 0, sizeof(args));
-	if (t->arch == ARCH_64)
-	{
-		sys_no = t->regs64.orig_rax;
-		t->orig_syscall = sys_no;
-		if (sys_no >= 0 && (size_t)sys_no < g_syscalls_64_count
-			&& g_syscalls_64[sys_no].name)
-		{
-			name = g_syscalls_64[sys_no].name;
-			e.nargs = g_syscalls_64[sys_no].nargs;
-			i = -1;
-			while (++i < e.nargs)
-				e.args_type[i] = g_syscalls_64[sys_no].args_type[i];
-		}
-		else
-		{
-			i = -1;
-			while (++i < 6)
-				e.args_type[i] = NONE;
-		}
-		args[0] = t->regs64.rdi;
-		args[1] = t->regs64.rsi;
-		args[2] = t->regs64.rdx;
-		args[3] = t->regs64.r10;
-		args[4] = t->regs64.r8;
-		args[5] = t->regs64.r9;
-	}
-	else
-	{
-		sys_no = t->regs32.orig_eax;
-		t->orig_syscall = sys_no;
-		if (sys_no >= 0 && (size_t)sys_no < g_syscalls_32_count
-			&& g_syscalls_32[sys_no].name)
-		{
-			name = g_syscalls_32[sys_no].name;
-			e.nargs = g_syscalls_32[sys_no].nargs;
-			i = -1;
-			while (++i < e.nargs)
-				e.args_type[i] = g_syscalls_32[sys_no].args_type[i];
-		}
-		else
-		{
-			i = -1;
-			while (++i < 6)
-				e.args_type[i] = NONE;
-		}
-		args[0] = t->regs32.ebx;
-		args[1] = t->regs32.ecx;
-		args[2] = t->regs32.edx;
-		args[3] = t->regs32.esi;
-		args[4] = t->regs32.edi;
-		args[5] = t->regs32.ebp;
-	}
+	get_syscall_entry(t, &e, args);
+	if (entry && e.name && (strcmp(e.name, "read") == 0
+			|| strcmp(e.name, "pread64") == 0))
+		return ;
 
-	if (name)
-		fprintf(stderr, YELLOW "%s" RESET "(", name);
+	// Syscall name
+	if (e.name)
+		fprintf(stderr, YELLOW "%s" RESET "(", e.name);
 	else
 		fprintf(stderr, YELLOW "sys_%ld" RESET "(", t->orig_syscall);
 
@@ -84,31 +33,31 @@ void	print_syscall_entry(t_tracer *t)
 		if (e.args_type[i] == INT)
 			fprintf(stderr, "%i", (int)args[i]);
 		else if (e.args_type[i] == UINT)
-			fprintf(stderr, "%lu", (unsigned long)args[i]);
+			fprintf(stderr, "%lu", (size_t)args[i]);
 		else if (e.args_type[i] == HEX)
 		{
 			if (args[i] == 0)
 				fprintf(stderr, "0");
 			else
-				fprintf(stderr, "0x%lx", (unsigned long)args[i]);
+				fprintf(stderr, "0x%lx", (size_t)args[i]);
 		}
 		else if (e.args_type[i] == PTR)
 		{
 			if (args[i] == 0)
 				fprintf(stderr, "NULL");
 			else
-				fprintf(stderr, "0x%lx", (unsigned long)args[i]);
+				fprintf(stderr, "0x%lx", (size_t)args[i]);
 		}
 		else if (e.args_type[i] == STR)
 		{
-			if (name && (strcmp(name, "read") == 0
-					|| strcmp(name, "pread64") == 0))
+			if (e.name && (strcmp(e.name, "read") == 0
+					|| strcmp(e.name, "pread64") == 0))
 				print_syscall_entry_string(t->child_pid, args[i], args[i + 1]);
 			else
 				print_syscall_entry_string(t->child_pid, args[i], ULONG_MAX);
 		}
 		else if (e.args_type[i] == OCTAL)
-			fprintf(stderr, "0%lo", (unsigned long)args[i]);
+			fprintf(stderr, "0%lo", (size_t)args[i]);
 		else if (e.args_type[i] == ARGV)
 			print_syscall_entry_argv(t);
 		else if (e.args_type[i] == PROT)
@@ -120,7 +69,7 @@ void	print_syscall_entry(t_tracer *t)
 		else if (e.args_type[i] == DIRFD)
 			decode_openat_dirfd(args[i]);
 		else if (e.args_type[i] == STRUCT)
-			fprintf(stderr, "{0x%lx}", (unsigned long)args[i]);
+			fprintf(stderr, "{0x%lx}", (size_t)args[i]);
 		else if (e.args_type[i] == OPENAT_FLAGS)
 			decode_openat_flags(args[i]);
 		else if (e.args_type[i] == OP)
@@ -135,7 +84,7 @@ void	print_syscall_entry(t_tracer *t)
 	}
 
 	// Execve exception
-	if (name && strcmp(name, "execve") == 0)
+	if (e.name && strcmp(e.name, "execve") == 0)
 	{
 		i = 0;
 		while (t->envp[i] != NULL)
@@ -285,35 +234,21 @@ void	print_syscall_exit(t_tracer *t)
 	[132] = "ERFKILL (Operation not possible due to RF-kill)\n",
 	[133] = "EHWPOISON (Memory page has hardware error)\n"
 	};
-	const char					*name = NULL;
-	t_arg_type					ret_type;
-	long						sys_no;
+	t_syscall_entry				e;
+	size_t						args[6];
 
+	get_syscall_entry(t, &e, args);
+	if (e.name && (strcmp(e.name, "read") == 0
+			|| strcmp(e.name, "pread64") == 0))
+		print_syscall_entry(t, false);
+
+	// Get return value
 	if (t->arch == ARCH_64)
-	{
 		ret = (long)t->regs64.rax;
-		sys_no = t->regs64.orig_rax;
-		t->orig_syscall = sys_no;
-		if (sys_no >= 0 && (size_t)sys_no < g_syscalls_64_count
-			&& g_syscalls_64[sys_no].name)
-		{
-			name = g_syscalls_64[sys_no].name;
-			ret_type = g_syscalls_64[sys_no].ret_type;
-		}
-	}
 	else
-	{
 		ret = (long)(int32_t)t->regs32.eax;
-		sys_no = t->regs32.orig_eax;
-		t->orig_syscall = sys_no;
-		if (sys_no >= 0 && (size_t)sys_no < g_syscalls_32_count
-			&& g_syscalls_32[sys_no].name)
-		{
-			name = g_syscalls_32[sys_no].name;
-			ret_type = g_syscalls_32[sys_no].ret_type;
-		}
-	}
 
+	// Display return value
 	fprintf(stderr, RESET ")");
 	if (ret == -516)
 		fprintf(stderr, " = " GREEN "? " RED
@@ -328,21 +263,21 @@ void	print_syscall_exit(t_tracer *t)
 	else if (ret == 0)
 	{
 		fprintf(stderr, " = " GREEN "0");
-		if (name && strcmp(name, "execve") == 0 && t->arch != ARCH_64)
+		if (e.name && strcmp(e.name, "execve") == 0 && t->arch != ARCH_64)
 			fprintf(stderr, "\n[ Process PID=%i runs in 32 bit mode. ]\n" RESET,
 				t->child_pid);
-		else if (name && strcmp(name, "poll") == 0)
+		else if (e.name && strcmp(e.name, "poll") == 0)
 			fprintf(stderr, " (Timeout)\n" RESET);
-		else if (name && strcmp(name, "set_thread_area") == 0)
+		else if (e.name && strcmp(e.name, "set_thread_area") == 0)
 			fprintf(stderr, " (entry_number=12)\n" RESET);
 		else
 			fprintf(stderr, "\n" RESET);
 	}
 	else if (t->arch == ARCH_32)
 	{
-		if (ret_type == PTR)
+		if (e.ret_type == PTR)
 			fprintf(stderr, " = " GREEN "0x%x\n" RESET, (uint32_t)ret);
-		else if (name && strcmp(name, "fcntl") == 0 && ret == 524290)
+		else if (e.name && strcmp(e.name, "fcntl") == 0 && ret == 524290)
 			fprintf(stderr, " = " GREEN "0x%x (flags O_RDWR|O_CLOEXEC)\n"
 				RESET, (uint32_t)ret);
 		else
@@ -350,11 +285,11 @@ void	print_syscall_exit(t_tracer *t)
 	}
 	else
 	{
-		if (ret_type == PTR)
-			fprintf(stderr, " = " GREEN "0x%lx\n" RESET, (unsigned long)ret);
-		else if (name && strcmp(name, "fcntl") == 0 && ret == 524290)
+		if (e.ret_type == PTR)
+			fprintf(stderr, " = " GREEN "0x%lx\n" RESET, (size_t)ret);
+		else if (e.name && strcmp(e.name, "fcntl") == 0 && ret == 524290)
 			fprintf(stderr, " = " GREEN "0x%lx (flags O_RDWR|O_CLOEXEC)\n"
-				RESET, (unsigned long)ret);
+				RESET, (size_t)ret);
 		else
 			fprintf(stderr, " = " GREEN "%ld\n" RESET, ret);
 	}
