@@ -21,12 +21,22 @@ static int	get_registers(t_tracer *t)
 	return (0);
 }
 
+void	tracer_signal(t_tracer *t, int child_pid)
+{
+	siginfo_t	si;
+
+	memset(&si, 0, sizeof(si));
+	if (ptrace(PTRACE_GETSIGINFO, child_pid, 0, &si) != -1)
+		print_signal(t, &si);
+}
+
 int	run_tracer(pid_t child_pid, int argc, char **argv, char **envp)
 {
 	int			status;
 	t_tracer	t;
 	int			sig;
-	siginfo_t	si;
+	sigset_t	empty;
+	sigset_t	blocked;
 
 	memset(&t, 0, sizeof(t));
 	t.argc = argc;
@@ -35,12 +45,22 @@ int	run_tracer(pid_t child_pid, int argc, char **argv, char **envp)
 	t.child_pid = child_pid;
 	t.in_syscall = false;
 
+	// Initialize sigsets as per the requirements
+	sigemptyset(&empty);
+	sigemptyset(&blocked);
+	sigaddset(&blocked, SIGHUP);
+	sigaddset(&blocked, SIGQUIT);
+	sigaddset(&blocked, SIGPIPE);
+	sigaddset(&blocked, SIGTERM);
+
 	// Wait for child process to stop on initial SIGSTOP
+	sigprocmask(SIG_SETMASK, &empty, NULL);
 	if (waitpid(child_pid, &status, WUNTRACED) == -1)
 	{
 		perror("strace: waitpid");
 		return (1);
 	}
+	sigprocmask(SIG_BLOCK, &blocked, NULL);
 
 	// Configure options: set TRACESYSGOOD to distinguish syscall stops
 	if (ptrace(PTRACE_SETOPTIONS, child_pid, 0, (void *)(PTRACE_O_TRACESYSGOOD))
@@ -59,7 +79,10 @@ int	run_tracer(pid_t child_pid, int argc, char **argv, char **envp)
 
 	while (1)
 	{
-		if (waitpid(child_pid, &status, 0) == -1)
+		sigprocmask(SIG_SETMASK, &empty, NULL);
+		sig = waitpid(child_pid, &status, 0);
+		sigprocmask(SIG_BLOCK, &blocked, NULL);
+		if (sig == -1)
 		{
 			// Interrupted system call
 			if (errno == EINTR)
@@ -109,11 +132,7 @@ int	run_tracer(pid_t child_pid, int argc, char **argv, char **envp)
 				sig = 0;
 			}
 			else if (sig != SIGTRAP && sig != SIGSTOP)
-			{
-				memset(&si, 0, sizeof(si));
-				if (ptrace(PTRACE_GETSIGINFO, child_pid, 0, &si) != -1)
-					print_signal(&t, &si);
-			}
+				tracer_signal(&t, child_pid);
 			else if (sig == SIGSTOP)
 				sig = 0;
 
